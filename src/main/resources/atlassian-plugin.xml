@@ -1,0 +1,12 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+  <plugin-info>
+    <description>${project.description}</description>
+    <version>${project.version}</version>
+    <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+  </plugin-info>
+
+  <listener name="Auto Page Scanner" class="it.could.confluence.facade.StaticPageGenerator" key="staticPageGenerator">
+    <description>Renders HTML version of the page</description>
+  </listener>
+
+</atlassian-plugin>
