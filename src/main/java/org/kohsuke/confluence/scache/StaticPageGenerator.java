@@ -5,6 +5,7 @@ import com.atlassian.confluence.event.events.content.comment.CommentEvent;
 import com.atlassian.confluence.event.events.content.page.PageEvent;
 import com.atlassian.confluence.event.events.content.page.PageRemoveEvent;
 import com.atlassian.confluence.event.events.label.LabelEvent;
+import com.atlassian.confluence.labels.Label;
 import com.atlassian.confluence.labels.Labelable;
 import com.atlassian.confluence.pages.Page;
 import com.atlassian.confluence.pages.PageManager;
@@ -20,14 +21,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -50,11 +49,16 @@ public class StaticPageGenerator {
         final String url;
         final File output;
         private final String key;
+        private boolean nocache;
 
         public Task(Page page) {
             key = page.getSpaceKey()+'/'+page.getTitle();
             url = configurationManager.getRetrievalUrl()+page.getUrlPath();
             output = new File(getCacheDir(),page.getSpaceKey()+'/'+page.getTitle()+".html");
+            for (Label l : page.getLabels()) {
+                if (l.getName().equals("nocache"))
+                    nocache=true;
+            }
         }
 
         @Override
@@ -73,6 +77,12 @@ public class StaticPageGenerator {
         }
 
         public void execute() throws IOException, InterruptedException {
+            if (!shouldCache()) {
+                LOGGER.info("Deleting cache of "+key);
+                delete();
+                return;
+            }
+
             LOGGER.info("Regenerating "+url);
 
             HttpMethod get = new GetMethod(url);
@@ -102,6 +112,10 @@ public class StaticPageGenerator {
 
         public void delete() {
             output.delete();
+        }
+
+        public boolean shouldCache() {
+            return !nocache;
         }
     }
 
@@ -151,10 +165,11 @@ public class StaticPageGenerator {
 
             for (Page page : pagesList) {
                 Task t = submit(page,false);
-                existingCaches.remove(t.output.getName());
+                if (t.shouldCache())
+                    existingCaches.remove(t.output.getName());
             }
 
-            // delete all other files
+            // delete all files that aren't cached
             for (String garbage : existingCaches) {
                 new File(getCacheDir(),garbage).delete();
             }
