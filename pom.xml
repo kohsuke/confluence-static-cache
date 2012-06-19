@@ -74,8 +74,8 @@
     </build>
 
     <properties>
-        <confluence.version>4.0</confluence.version>
-        <confluence.data.version>3.5</confluence.data.version>
+        <confluence.version>3.4</confluence.version>
+        <confluence.data.version>3.2</confluence.data.version>
         <amps.version>3.11</amps.version>
     </properties>
 
