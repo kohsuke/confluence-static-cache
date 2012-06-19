@@ -73,7 +73,7 @@ public class StaticPageGenerator {
 
             HttpMethod get = new GetMethod(url);
             String auth = configurationManager.getUserName()+':'+configurationManager.getPassword();
-            get.setRequestHeader("Authorization", "Basic " + Base64.encodeBase64String(auth.getBytes()));
+            get.setRequestHeader("Authorization", "Basic " + new String(Base64.encodeBase64(auth.getBytes())));
 
             int r = client.executeMethod(get);
             if (r /100==2) {
@@ -126,10 +126,11 @@ public class StaticPageGenerator {
 
     public void regenerateAll() {
         LOGGER.info("Rescheduling the generation of everything");
-        Space space = spaceManager.getSpace("JENKINS");
-        List<Page> pagesList = pageManager.getPages(space, true);
-        for (Page page : pagesList) {
-            submit(page,false);
+        for (Space space : spaceManager.getAllSpaces()) {
+            List<Page> pagesList = pageManager.getPages(space, true);
+            for (Page page : pagesList) {
+                submit(page,false);
+            }
         }
     }
 
