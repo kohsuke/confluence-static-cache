@@ -35,8 +35,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -47,21 +45,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class StaticPageGenerator implements EventListener {
     private final ScheduledExecutorService worker = new ScheduledThreadPoolExecutor(1,DAEMON_THREAD_FACTORY);
-//    private final LinkedHashSet<Task> tasks = new LinkedHashSet<Task>();
-    private final String confluenceUrl;
-    /**
-     * This is where the cache gets written.
-     */
-    private final File baseDir = getBaseDir();
 
-    private final Timer regenerateAll = new Timer();
+    private final ConfigurationManager configurationManager;
     private final SpaceManager spaceManager;
-    private final HttpClient client;
+    private final PageManager pageManager;
 
-    /**
-     * username:password
-     */
-    private final String authentication;
+    private final HttpClient client;
 
     public class Task {
         final String url;
@@ -70,8 +59,8 @@ public class StaticPageGenerator implements EventListener {
 
         public Task(Page page) {
             key = page.getSpaceKey()+'/'+page.getTitle();
-            url = confluenceUrl+page.getUrlPath();
-            output = new File(baseDir,page.getSpaceKey()+'/'+page.getTitle()+".html");
+            url = configurationManager.getRetrievalUrl()+page.getUrlPath();
+            output = new File(configurationManager.getRootPath(),page.getSpaceKey()+'/'+page.getTitle()+".html");
         }
 
         @Override
@@ -93,7 +82,8 @@ public class StaticPageGenerator implements EventListener {
             LOGGER.info("Regenerating "+url);
 
             HttpMethod get = new GetMethod(url);
-            get.setRequestHeader("Authorization", "Basic " + Base64.encodeBase64String(authentication.getBytes()));
+            String auth = configurationManager.getUserName()+':'+configurationManager.getPassword();
+            get.setRequestHeader("Authorization", "Basic " + Base64.encodeBase64String(auth.getBytes()));
 
             int r = client.executeMethod(get);
             if (r /100==2) {
@@ -126,29 +116,31 @@ public class StaticPageGenerator implements EventListener {
         return s.replace(userMenuLink,userMenuLink+" style='display:none'");
     }
 
-    public StaticPageGenerator(final PageManager pageManager, final SpaceManager spaceManager) throws IOException {
+    public StaticPageGenerator(ConfigurationManager configurationManager, PageManager pageManager, SpaceManager spaceManager) throws IOException {
         this.spaceManager = spaceManager;
+        this.pageManager = pageManager;
+        this.configurationManager = configurationManager;
 
         client = new HttpClient();
 //            client.getHostConfiguration().setHost("wiki2.jenkins-ci.org", 443,
 //                    new Protocol("https", (ProtocolSocketFactory)new EasySSLProtocolSocketFactory(), 443));
         Protocol.registerProtocol("https", new Protocol("https", new EasySSLProtocolSocketFactory(), 443));
 
-        Properties props = loadConfigFile();
-        authentication = props.getProperty("authentication", "scanner:scanner");
-        confluenceUrl = props.getProperty("url");
-
-        regenerateAll.scheduleAtFixedRate(new TimerTask() {
+        worker.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                LOGGER.info("Rescheduling the generation of everything");
-                Space space = spaceManager.getSpace("JENKINS");
-                List<Page> pagesList = pageManager.getPages(space, true);
-                for (Page page : pagesList) {
-                    submit(page);
-                }
+                regenerateAll();
             }
-        }, TimeUnit.HOURS.toMillis(6), TimeUnit.HOURS.toMillis(6));
+        },6,6,TimeUnit.HOURS);
+    }
+
+    public void regenerateAll() {
+        LOGGER.info("Rescheduling the generation of everything");
+        Space space = spaceManager.getSpace("JENKINS");
+        List<Page> pagesList = pageManager.getPages(space, true);
+        for (Page page : pagesList) {
+            submit(page,false);
+        }
     }
 
     private Properties loadConfigFile() throws IOException {
@@ -171,17 +163,17 @@ public class StaticPageGenerator implements EventListener {
             new Task(((PageEvent) event).getPage()).delete();
         }
         if (event instanceof PageEvent) {
-            submit(((PageEvent) event).getPage());
+            submit(((PageEvent) event).getPage(),true);
         }
         if (event instanceof LabelEvent) {
             Labelable labelled = ((LabelEvent) event).getLabelled();
             if (labelled instanceof Page)
-                submit((Page)labelled);
+                submit((Page)labelled,true);
         }
         if (event instanceof CommentEvent) {
             ContentEntityObject pg = ((CommentEvent) event).getComment().getOwner();
             if (pg instanceof Page) {
-                submit((Page) pg);
+                submit((Page) pg,true);
             }
         }
     }
@@ -196,45 +188,26 @@ public class StaticPageGenerator implements EventListener {
         return HANDLED_EVENTS;
     }
 
-    public void submit(Page page) {
-//        synchronized (tasks) {
-//            Task t = new Task(page);
-//            if (tasks.add(t)) {
-//                t.output.delete(); // delete the stale cache until we regenerate the cache
-//            }
-//        }
-
+    public void submit(Page page, boolean evictNow) {
         final Task t = new Task(page);
-        t.output.delete();
+        if (evictNow)
+            t.output.delete();
 
         // by the time event happens, the data appears not to be committed,
         // so we are delaying the execution of the task a bit
         worker.schedule(new Runnable() {
             public void run() {
-                Task task = pop();
-                if (task==null)     return;
-
                 try {
-                    task.execute();
+                    t.output.delete();
+                    t.execute();
                 } catch (Exception e) {
-                    LOGGER.warn("Failed to generate " + task.url, e);
+                    LOGGER.warn("Failed to generate " + t.url, e);
                 }
-            }
-
-            private Task pop() {
-                return t;
-//                synchronized (tasks) {
-//                    if (tasks.isEmpty())    return null;
-//                    Iterator<Task> itr = tasks.iterator();
-//                    Task r = itr.next();
-//                    itr.remove();
-//                    return r;
-//                }
             }
         },3,TimeUnit.SECONDS);
     }
 
-    private static final Logger LOGGER = Logger.getLogger(StaticPageGenerator.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(StaticPageGenerator.class);
 
     private static final ThreadFactory DAEMON_THREAD_FACTORY = new ThreadFactory() {
         public Thread newThread(Runnable r) {

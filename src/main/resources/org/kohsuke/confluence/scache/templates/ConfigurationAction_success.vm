@@ -1,0 +1,113 @@
+#* ========================================================================== *
+ *   Copyright (c) 2006, Pier Paolo Fumagalli <mailto:pier@betaversion.org>   *
+ *                            All rights reserved.                            *
+ * ========================================================================== *
+ *                                                                            *
+ * Redistribution and use in source and binary forms, with or without modifi- *
+ * cation, are permitted provided that the following conditions are met:      *
+ *                                                                            *
+ *  - Redistributions of source code must retain the  above copyright notice, *
+ *    this list of conditions and the following disclaimer.                   *
+ *                                                                            *
+ *  - Redistributions  in binary  form  must  reproduce the  above  copyright *
+ *    notice,  this list of conditions  and the following  disclaimer  in the *
+ *    documentation and/or other materials provided with the distribution.    *
+ *                                                                            *
+ *  - Neither the name of Pier Fumagalli, nor the names of other contributors *
+ *    may be used to endorse  or promote products derived  from this software *
+ *    without specific prior written permission.                              *
+ *                                                                            *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS" *
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES,  INCLUDING, BUT NOT LIMITED TO, THE *
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE *
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER  OR CONTRIBUTORS BE *
+ * LIABLE  FOR ANY  DIRECT,  INDIRECT,  INCIDENTAL,  SPECIAL,  EXEMPLARY,  OR *
+ * CONSEQUENTIAL  DAMAGES  (INCLUDING,  BUT  NOT LIMITED  TO,  PROCUREMENT OF *
+ * SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, OR PROFITS;  OR BUSINESS *
+ * INTERRUPTION)  HOWEVER CAUSED AND ON  ANY THEORY OF LIABILITY,  WHETHER IN *
+ * CONTRACT,  STRICT LIABILITY,  OR TORT  (INCLUDING NEGLIGENCE OR OTHERWISE) *
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE *
+ * POSSIBILITY OF SUCH DAMAGE.                                                *
+ * ========================================================================== *#
+<html>
+  <head>
+    <title>Static Cache Generator Configuration</title>
+  </head>
+  <body>
+    #parse ("/template/includes/actionerrors.vm")
+    #parse ("/org/kohsuke/confluence/scache/templates/messages.vm")
+    #if ($actionMessages.size() > 0)
+      <div align="center"><a href="configuration.action">Back</a></div>
+    #else
+      <div align="center">
+        <table>
+          <tr>
+            <td>
+              <form action="configuration-save.action" method="post" name="configform">
+                <table class="grid" width="100%">
+                  <thead>
+                    <tr>
+                      <th colspan="2" style="$i18n.getText('style.title')">
+                        Configure Static Cache Generator Plugin
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    #bodytag( TextField "label='Cache root directory'" "name='rootPath'" "value=rootPath" "size=50" )
+                      #param ("description" "This directory stores generated static file cache")
+                    #end
+                    #bodytag( TextField "label='Retrieval URL'" "name='retrievalUrl'" "value=retrievalUrl" "size=50" )
+                      #param ("description" "This is the direct URL to Confluence that doesn't go through cache")
+                    #end
+                    #bodytag( TextField "label='Confluence user'" "name='userName'" "value=userName" "size=20")
+                      #param ("description" "Valid confluence user who can access the site")
+                    #end
+                    #bodytag( TextField "label='Password'" "name='password'" "value=password" "size=20")
+                      #param ("description" "Password for the above user")
+                    #end
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <th colspan="2" style="$i18n.getText('style.buttons')">
+                        <input type="submit" name="saveConfig" value="$i18n.getText('act.save')">
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </form>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <form action="configuration-regenerate.action" method="post">
+                <table class="grid" width="100%">
+                  <thead>
+                    <tr>
+                      <th colspan="2" style="$i18n.getText('style.title')">
+                        Regenerate All Cache
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="2">
+                        Invalidate and regenerate all the cache.
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <th colspan="2" style="$i18n.getText('style.buttons')">
+                        <input type="submit" value="Do It">
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </form>
+            </td>
+          </tr>
+        </table>
+      </div>
+    #end
+  </body>
+</html>
