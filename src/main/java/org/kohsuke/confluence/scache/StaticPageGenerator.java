@@ -127,6 +127,8 @@ public class StaticPageGenerator {
     public void regenerateAll() {
         LOGGER.info("Rescheduling the generation of everything");
         for (Space space : spaceManager.getAllSpaces()) {
+            if (space.isPersonal()) continue;   // don't care about personal space
+
             List<Page> pagesList = pageManager.getPages(space, true);
             for (Page page : pagesList) {
                 submit(page,false);
