@@ -1,26 +1,16 @@
 package org.kohsuke.confluence.scache;
 
 import com.atlassian.confluence.core.ContentEntityObject;
-import com.atlassian.confluence.event.events.content.comment.CommentCreateEvent;
 import com.atlassian.confluence.event.events.content.comment.CommentEvent;
-import com.atlassian.confluence.event.events.content.comment.CommentRemoveEvent;
-import com.atlassian.confluence.event.events.content.comment.CommentUpdateEvent;
-import com.atlassian.confluence.event.events.content.page.PageCreateEvent;
 import com.atlassian.confluence.event.events.content.page.PageEvent;
-import com.atlassian.confluence.event.events.content.page.PageMoveEvent;
 import com.atlassian.confluence.event.events.content.page.PageRemoveEvent;
-import com.atlassian.confluence.event.events.content.page.PageRestoreEvent;
-import com.atlassian.confluence.event.events.content.page.PageUpdateEvent;
-import com.atlassian.confluence.event.events.label.LabelAddEvent;
 import com.atlassian.confluence.event.events.label.LabelEvent;
-import com.atlassian.confluence.event.events.label.LabelRemoveEvent;
 import com.atlassian.confluence.labels.Labelable;
 import com.atlassian.confluence.pages.Page;
 import com.atlassian.confluence.pages.PageManager;
 import com.atlassian.confluence.spaces.Space;
 import com.atlassian.confluence.spaces.SpaceManager;
 import com.atlassian.event.Event;
-import com.atlassian.event.EventListener;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -43,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Kohsuke Kawaguchi
  */
-public class StaticPageGenerator implements EventListener {
+public class StaticPageGenerator {
     private final ScheduledExecutorService worker = new ScheduledThreadPoolExecutor(1,DAEMON_THREAD_FACTORY);
 
     private final ConfigurationManager configurationManager;
@@ -157,8 +147,8 @@ public class StaticPageGenerator implements EventListener {
         return props;
     }
 
-    public void handleEvent(Event event) {
-        LOGGER.info("Handling "+event);
+    public void onEvent(Event event) {
+        LOGGER.info("Handling " + event);
         if (event instanceof PageRemoveEvent) {
             new Task(((PageEvent) event).getPage()).delete();
         }
@@ -182,10 +172,6 @@ public class StaticPageGenerator implements EventListener {
     protected void finalize() throws Throwable {
         super.finalize();
         worker.shutdown();
-    }
-
-    public Class[] getHandledEventClasses() {
-        return HANDLED_EVENTS;
     }
 
     public void submit(Page page, boolean evictNow) {
@@ -217,18 +203,6 @@ public class StaticPageGenerator implements EventListener {
         }
     };
 
-    private final Class[] HANDLED_EVENTS = new Class[] {
-            PageCreateEvent.class,
-            PageRestoreEvent.class,
-            PageUpdateEvent.class,
-            PageMoveEvent.class,
-            PageRemoveEvent.class,
-            LabelAddEvent.class,
-            LabelRemoveEvent.class,
-            CommentCreateEvent.class,
-            CommentUpdateEvent.class,
-            CommentRemoveEvent.class
-    };
 
     private static File getBaseDir() {
         String dir = System.getenv("STATIC_CACHE_DIR");
