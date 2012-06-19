@@ -22,9 +22,13 @@ import org.apache.log4j.Logger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -50,7 +54,7 @@ public class StaticPageGenerator {
         public Task(Page page) {
             key = page.getSpaceKey()+'/'+page.getTitle();
             url = configurationManager.getRetrievalUrl()+page.getUrlPath();
-            output = new File(configurationManager.getRootPath(),page.getSpaceKey()+'/'+page.getTitle()+".html");
+            output = new File(getCacheDir(),page.getSpaceKey()+'/'+page.getTitle()+".html");
         }
 
         @Override
@@ -101,6 +105,10 @@ public class StaticPageGenerator {
         }
     }
 
+    private File getCacheDir() {
+        return new File(configurationManager.getRootPath());
+    }
+
     private String transformHtml(String s) {
         String userMenuLink = "id=\"user-menu-link\"";
         return s.replace(userMenuLink,userMenuLink+" style='display:none'");
@@ -130,24 +138,25 @@ public class StaticPageGenerator {
             if (space.isPersonal()) continue;   // don't care about personal space
 
             List<Page> pagesList = pageManager.getPages(space, true);
-            for (Page page : pagesList) {
-                submit(page,false);
-            }
-        }
-    }
 
-    private Properties loadConfigFile() throws IOException {
-        Properties props = new Properties();
-        File config = new File(new File(System.getProperty("user.home")), ".static-page-generator");
-        if (config.exists()) {
-            FileInputStream in = new FileInputStream(config);
-            try {
-                props.load(in);
-            } finally {
-                in.close();
+            File dir = new File(getCacheDir(),space.getKey());
+            Set<String> existingCaches = new HashSet<String>(Arrays.asList(dir.list(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith(".html");
+                }
+            })));
+
+            for (Page page : pagesList) {
+                Task t = submit(page,false);
+                existingCaches.remove(t.output.getName());
+            }
+
+            // delete all other files
+            for (String garbage : existingCaches) {
+                new File(getCacheDir(),garbage).delete();
             }
         }
-        return props;
     }
 
     public void onEvent(Event event) {
@@ -177,7 +186,7 @@ public class StaticPageGenerator {
         worker.shutdown();
     }
 
-    public void submit(Page page, boolean evictNow) {
+    public Task submit(Page page, boolean evictNow) {
         final Task t = new Task(page);
         if (evictNow)
             t.output.delete();
@@ -194,6 +203,8 @@ public class StaticPageGenerator {
                 }
             }
         },3,TimeUnit.SECONDS);
+
+        return t;
     }
 
     private static final Logger LOGGER = Logger.getLogger(StaticPageGenerator.class);
@@ -205,11 +216,4 @@ public class StaticPageGenerator {
             return t;
         }
     };
-
-
-    private static File getBaseDir() {
-        String dir = System.getenv("STATIC_CACHE_DIR");
-        if (dir==null)  dir = "/tmp";
-        return new File(dir);
-    }
 }
