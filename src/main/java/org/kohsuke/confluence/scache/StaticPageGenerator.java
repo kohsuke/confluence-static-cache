@@ -140,12 +140,14 @@ public class StaticPageGenerator {
             List<Page> pagesList = pageManager.getPages(space, true);
 
             File dir = new File(getCacheDir(),space.getKey());
-            Set<String> existingCaches = new HashSet<String>(Arrays.asList(dir.list(new FilenameFilter() {
+            String[] files = dir.list(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
                     return name.endsWith(".html");
                 }
-            })));
+            });
+            if (files==null)    files = new String[0];
+            Set<String> existingCaches = new HashSet<String>(Arrays.asList(files));
 
             for (Page page : pagesList) {
                 Task t = submit(page,false);
