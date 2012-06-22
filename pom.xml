@@ -9,13 +9,8 @@
     <artifactId>confluence-static-cache</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <organization>
-        <name>Example Company</name>
-        <url>http://www.example.com/</url>
-    </organization>
-
     <name>confluence-static-cache</name>
-    <description>This is the org.kohsuke:confluence-static-cache plugin for Atlassian Confluence.</description>
+    <description>Generates static HTML pages from Confluence pages to be used as cache</description>
     <packaging>atlassian-plugin</packaging>
 
     <dependencies>
