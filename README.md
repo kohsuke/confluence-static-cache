@@ -23,7 +23,8 @@ a lot faster.
 
 Installing and configuring this plugin
 --------------------------------------
-[Download the binary]() and deploy it to Confluence. The configuration UI will appear in the Confluence administration page.
+[Download the binary](https://github.com/kohsuke/confluence-static-cache/downloads) and
+deploy it to Confluence. The configuration UI will appear in the Confluence administration page.
 
 ![Confluence Admin UI](https://github.com/kohsuke/confluence-static-cache/raw/master/config-ui.png)
 
