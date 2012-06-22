@@ -1,8 +1,8 @@
 Confluence Static Cache Generator
 =================================
 
-I'm not sure about your Confluence, but [my Confluence](http://wiki.jenkins-ci.org/) is dog slow. Page rendering regularly
-takes a second or two, or even worse. That's why I wrote this plugin.
+I'm not sure about your Confluence, but [my Confluence](http://wiki.jenkins-ci.org/) was dog slow. Page rendering regularly
+took a second or two, or even worse. That's why I wrote this plugin.
 
 This Confluence plugin generates static HTML files out of your Wiki pages.
 It happens every time when someone updates a page, post a comment, add a label &mdash; anything that can affect
@@ -19,6 +19,8 @@ to the backend Confluence.
 The end result is that your visitors won't even notice that your Confluence is running with static cache. They see
 the same-old Confluence UI, and the same URLs will keep working. The only difference is that pages magically load
 a lot faster.
+
+See [the live instance](https://wiki.jenkins-ci.org/) to get the feel of how this cache works mostly transparently.
 
 
 Installing and configuring this plugin
