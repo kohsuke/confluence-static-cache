@@ -25,7 +25,7 @@ Installing and configuring this plugin
 --------------------------------------
 [Download the binary]() and deploy it to Confluence. The configuration UI will appear in the Confluence administration page.
 
-![Confluence Admin UI](config-ui.png)
+![Confluence Admin UI](https://github.com/kohsuke/confluence-static-cache/raw/master/config-ui.png)
 
 You'll specify the local directory to store generated HTML files, and username/password that the crawler will use
 to retrieve pages. The botton at the bottom allows you to initiate full regeneration of the cache (which happens
