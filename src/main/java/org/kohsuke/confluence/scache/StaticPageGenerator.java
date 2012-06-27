@@ -138,12 +138,16 @@ public class StaticPageGenerator {
 //                    new Protocol("https", (ProtocolSocketFactory)new EasySSLProtocolSocketFactory(), 443));
         Protocol.registerProtocol("https", new Protocol("https", new EasySSLProtocolSocketFactory(), 443));
 
-        worker.scheduleAtFixedRate(new Runnable() {
+        worker.schedule(new Runnable() {
             @Override
             public void run() {
-                regenerateAll();
+                try {
+                    regenerateAll();
+                } finally {// scheduleAtFixedRate will stop scheduling if there's any error once.
+                    worker.schedule(this,6,TimeUnit.HOURS);
+                }
             }
-        },6,6,TimeUnit.HOURS);
+        }, 6, TimeUnit.HOURS);
     }
 
     public void regenerateAll() {
