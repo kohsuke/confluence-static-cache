@@ -219,7 +219,7 @@ public class StaticPageGenerator {
                     LOGGER.warn("Failed to generate " + t.url, e);
                 }
             }
-        },3,TimeUnit.SECONDS);
+        },10,TimeUnit.SECONDS);
 
         return t;
     }
