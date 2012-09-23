@@ -156,7 +156,9 @@ public class StaticPageGenerator implements LifecycleAware {
 
     @Override
     public void onStart() {
-        long sixHours = TimeUnit.HOURS.toMillis(6);
+        System.out.println("=============================!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//        long sixHours = TimeUnit.HOURS.toMillis(6);
+        long sixHours = TimeUnit.MINUTES.toMillis(1);
         pluginScheduler.scheduleJob(
                 PluginJobImpl.class.getName(),
                 PluginJobImpl.class,
@@ -166,6 +168,8 @@ public class StaticPageGenerator implements LifecycleAware {
     }
 
     public void regenerateAll() {
+        if (!configurationManager.isConfigured())   return;
+
         LOGGER.info("Rescheduling the generation of everything");
         for (Space space : spaceManager.getAllSpaces()) {
             if (space.isPersonal()) continue;   // don't care about personal space
@@ -196,6 +200,8 @@ public class StaticPageGenerator implements LifecycleAware {
     }
 
     public void onEvent(Event event) {
+        if (!configurationManager.isConfigured())   return;
+
         LOGGER.info("Handling " + event);
         if (event instanceof PageRemoveEvent) {
             new Task(((PageEvent) event).getPage()).delete();

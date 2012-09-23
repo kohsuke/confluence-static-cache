@@ -9,10 +9,13 @@ import org.apache.log4j.Logger;
  */
 public class ConfigurationManager {
     private final ApplicationConfiguration applicationConfig;
-    private String url;
 
     public ConfigurationManager(ApplicationConfiguration applicationConfig) {
         this.applicationConfig = applicationConfig;
+    }
+
+    public boolean isConfigured() {
+        return getRootPath()!=null;
     }
 
     public String getRootPath() {
