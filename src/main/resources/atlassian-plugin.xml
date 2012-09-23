@@ -24,6 +24,16 @@
     <description>Renders HTML version of the page</description>
   </listener>
 
+  <job key="periodicStaticCacheRegeneration"
+           name="Periodic Static Cache Regeneration"
+           class="org.kohsuke.confluence.scache.RegeneratorImpl" />
+
+  <trigger key="periodicStaticCacheRegenerationTrigger"
+           name="Periodic Static Cache Regeneration Trigger">
+       <job key="periodicStaticCacheRegeneration" />
+       <schedule cron-expression="* * * * * ?" />
+   </trigger>
+
   <component-import key="pluginScheduler">
     <description>SAL Scheduler</description>
     <interface>com.atlassian.sal.api.scheduling.PluginScheduler</interface>

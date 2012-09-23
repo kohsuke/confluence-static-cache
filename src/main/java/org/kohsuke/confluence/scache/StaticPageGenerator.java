@@ -150,7 +150,8 @@ public class StaticPageGenerator implements LifecycleAware {
     public static class PluginJobImpl implements PluginJob {
         @Override
         public void execute(Map<String, Object> data) {
-            ((StaticPageGenerator)data.get("key")).regenerateAll();
+            // doesn't seem to allow database access
+//            ((StaticPageGenerator)data.get("key")).regenerateAll();
         }
     }
 
