@@ -61,7 +61,7 @@ public class StaticPageGenerator {
             // to simplify the cache matching, produce content in both names
             String name = page.getSpaceKey() + '/' + page.getTitle() + ".html";
             output.add(new File(getCacheDir(), name));
-            output.add(new File(getCacheDir(), name.replace('+',' ')));
+            output.add(new File(getCacheDir(), name.replace(' ','+')));
 
             for (Label l : page.getLabels()) {
                 if (l.getName().equals("nocache"))
