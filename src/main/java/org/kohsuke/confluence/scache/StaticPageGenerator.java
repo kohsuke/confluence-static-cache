@@ -12,9 +12,6 @@ import com.atlassian.confluence.pages.PageManager;
 import com.atlassian.confluence.spaces.Space;
 import com.atlassian.confluence.spaces.SpaceManager;
 import com.atlassian.event.Event;
-import com.atlassian.sal.api.lifecycle.LifecycleAware;
-import com.atlassian.sal.api.scheduling.PluginJob;
-import com.atlassian.sal.api.scheduling.PluginScheduler;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -28,11 +25,8 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -42,13 +36,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Kohsuke Kawaguchi
  */
-public class StaticPageGenerator implements LifecycleAware {
+public class StaticPageGenerator {
     private final ScheduledExecutorService worker = new ScheduledThreadPoolExecutor(1,DAEMON_THREAD_FACTORY);
 
     private final ConfigurationManager configurationManager;
     private final SpaceManager spaceManager;
     private final PageManager pageManager;
-    private final PluginScheduler pluginScheduler;
 
     private final HttpClient client;
 
@@ -135,37 +128,15 @@ public class StaticPageGenerator implements LifecycleAware {
         return s.replace(userMenuLink,userMenuLink+" style='display:none'");
     }
 
-    public StaticPageGenerator(ConfigurationManager configurationManager, PageManager pageManager, SpaceManager spaceManager, PluginScheduler pluginScheduler) throws IOException {
+    public StaticPageGenerator(ConfigurationManager configurationManager, PageManager pageManager, SpaceManager spaceManager) throws IOException {
         this.spaceManager = spaceManager;
         this.pageManager = pageManager;
         this.configurationManager = configurationManager;
-        this.pluginScheduler = pluginScheduler;
 
         client = new HttpClient();
 //            client.getHostConfiguration().setHost("wiki2.jenkins-ci.org", 443,
 //                    new Protocol("https", (ProtocolSocketFactory)new EasySSLProtocolSocketFactory(), 443));
         Protocol.registerProtocol("https", new Protocol("https", new EasySSLProtocolSocketFactory(), 443));
-    }
-
-    public static class PluginJobImpl implements PluginJob {
-        @Override
-        public void execute(Map<String, Object> data) {
-            // doesn't seem to allow database access
-//            ((StaticPageGenerator)data.get("key")).regenerateAll();
-        }
-    }
-
-    @Override
-    public void onStart() {
-        System.out.println("=============================!!!!!!!!!!!!!!!!!!!!!!!!!!");
-//        long sixHours = TimeUnit.HOURS.toMillis(6);
-        long sixHours = TimeUnit.MINUTES.toMillis(1);
-        pluginScheduler.scheduleJob(
-                PluginJobImpl.class.getName(),
-                PluginJobImpl.class,
-                Collections.<String, Object>singletonMap("key", this),
-                new Date(System.currentTimeMillis() + sixHours),
-                sixHours);
     }
 
     public void regenerateAll() {
