@@ -49,7 +49,7 @@ public class StaticPageGenerator {
 
     public class Task {
         final String url;
-        final List<File> output = new ArrayList<File>();
+        final Set<File> output = new HashSet<File>();
         private final String key;
         private boolean nocache;
 
