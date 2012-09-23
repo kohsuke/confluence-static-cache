@@ -24,14 +24,18 @@
     <description>Renders HTML version of the page</description>
   </listener>
 
-  <job key="periodicStaticCacheRegeneration"
-           name="Periodic Static Cache Regeneration"
-           class="org.kohsuke.confluence.scache.RegeneratorImpl" />
+  <!-- https://developer.atlassian.com/display/CONFDEV/Workaround+pattern+for+autowiring+jobs -->
+  <component key="periodicStaticCacheRegenerationDetail" name="Workaround for lack of injection to job"
+             class="org.kohsuke.confluence.scache.RegeneratorJobDetail">
+      <description>Working around the lack of injection to job</description>
+      <interface>org.quartz.JobDetail</interface>
+  </component>
 
   <trigger key="periodicStaticCacheRegenerationTrigger"
            name="Periodic Static Cache Regeneration Trigger">
-       <job key="periodicStaticCacheRegeneration" />
-       <schedule cron-expression="* * * * * ?" />
+       <job key="periodicStaticCacheRegenerationDetail" />
+       <!-- sec min hour DoM month DoW Year -->
+       <schedule cron-expression="0 * * * * ?" />
    </trigger>
 
   <component-import key="pluginScheduler">
