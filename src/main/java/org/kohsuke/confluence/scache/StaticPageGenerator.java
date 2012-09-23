@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -60,6 +59,7 @@ public class StaticPageGenerator {
             // Confluence uses '+' in page names to indicate ' ', which is an incorrect escaping for path name tokens
             // to simplify the cache matching, produce content in both names
             String name = page.getSpaceKey() + '/' + page.getTitle() + ".html";
+            name = name.replaceAll("\\.\\.","_");   // prevent directory traversal attack
             output.add(new File(getCacheDir(), name));
             output.add(new File(getCacheDir(), name.replace(' ','+')));
 
