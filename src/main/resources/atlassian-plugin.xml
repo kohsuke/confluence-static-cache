@@ -23,6 +23,11 @@
     <description>Renders HTML version of the page</description>
   </listener>
 
+  <component-import key="pluginScheduler">
+    <description>SAL Scheduler</description>
+    <interface>com.atlassian.sal.api.scheduling.PluginScheduler</interface>
+  </component-import>
+
   <!-- adds this to the system config UI -->
   <web-item name="Admin Menu Link" key="confluenceAdminMenuLink" section="system.admin/configuration" application="com.atlassian.confluence">
       <label key="staticCache.admin.label"/>
