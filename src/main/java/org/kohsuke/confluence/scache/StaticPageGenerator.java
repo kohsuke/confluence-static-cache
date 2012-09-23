@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -48,14 +49,20 @@ public class StaticPageGenerator {
 
     public class Task {
         final String url;
-        final File output;
+        final List<File> output = new ArrayList<File>();
         private final String key;
         private boolean nocache;
 
         public Task(Page page) {
             key = page.getSpaceKey()+'/'+page.getTitle();
             url = configurationManager.getRetrievalUrl()+page.getUrlPath();
-            output = new File(getCacheDir(),page.getSpaceKey()+'/'+page.getTitle()+".html");
+
+            // Confluence uses '+' in page names to indicate ' ', which is an incorrect escaping for path name tokens
+            // to simplify the cache matching, produce content in both names
+            String name = page.getSpaceKey() + '/' + page.getTitle() + ".html";
+            output.add(new File(getCacheDir(), name));
+            output.add(new File(getCacheDir(), name.replace('+',' ')));
+
             for (Label l : page.getLabels()) {
                 if (l.getName().equals("nocache"))
                     nocache=true;
@@ -92,27 +99,31 @@ public class StaticPageGenerator {
 
             int r = client.executeMethod(get);
             if (r /100==2) {
+                String html = IOUtils.toString(get.getResponseBodyAsStream(), "UTF-8");
+                html = transformHtml(html);
+
                 // write to the output file atomically
-                output.getParentFile().mkdirs();
-                File tmp = new File(output.getPath()+".tmp");
-                FileOutputStream fos = new FileOutputStream(tmp);
-                try {
-                    String html = IOUtils.toString(get.getResponseBodyAsStream(), "UTF-8");
-                    html = transformHtml(html);
-                    IOUtils.write(html, fos, "UTF-8");
-                } finally {
-                    IOUtils.closeQuietly(fos);
-                    get.releaseConnection();
+                for (File output : this.output) {
+                    output.getParentFile().mkdirs();
+                    File tmp = new File(output.getPath()+".tmp");
+                    FileOutputStream fos = new FileOutputStream(tmp);
+                    try {
+                        IOUtils.write(html, fos, "UTF-8");
+                    } finally {
+                        IOUtils.closeQuietly(fos);
+                        get.releaseConnection();
+                    }
+                    tmp.renameTo(output);
+                    LOGGER.info("Generated "+output);
                 }
-                tmp.renameTo(output);
-                LOGGER.info("Generated "+output);
             } else {
                 LOGGER.warn("Request to "+url+" failed: "+r);
             }
         }
 
         public void delete() {
-            output.delete();
+            for (File f : output)
+                f.delete();
         }
 
         public boolean shouldCache() {
@@ -161,8 +172,11 @@ public class StaticPageGenerator {
 
             for (Page page : pagesList) {
                 Task t = submit(page,false);
-                if (t.shouldCache())
-                    existingCaches.remove(t.output.getName());
+                if (t.shouldCache()) {
+                    for (File f : t.output) {
+                        existingCaches.remove(f.getName());
+                    }
+                }
             }
 
             // delete all files that aren't cached
@@ -204,14 +218,14 @@ public class StaticPageGenerator {
     public Task submit(Page page, boolean evictNow) {
         final Task t = new Task(page);
         if (evictNow)
-            t.output.delete();
+            t.delete();
 
         // by the time event happens, the data appears not to be committed,
         // so we are delaying the execution of the task a bit
         worker.schedule(new Runnable() {
             public void run() {
                 try {
-                    t.output.delete();
+                    t.delete();
                     t.execute();
                 } catch (Exception e) {
                     LOGGER.warn("Failed to generate " + t.url, e);
