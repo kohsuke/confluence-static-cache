@@ -16,10 +16,11 @@
   <component name="Static Cache Generator" class="org.kohsuke.confluence.scache.StaticPageGenerator"
              key="staticPageGenerator">
     <description>Actual page generator</description>
+    <interface>com.atlassian.sal.api.lifecycle.LifecycleAware</interface>
   </component>
 
   <listener name="Static Cache Generator" class="org.kohsuke.confluence.scache.EventListenerImpl"
-            key="eventListenerImpl">
+            key="eventListenerImpl" system="true" public="true">
     <description>Renders HTML version of the page</description>
   </listener>
 
