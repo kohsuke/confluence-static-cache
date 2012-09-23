@@ -9,7 +9,6 @@ import org.quartz.JobExecutionException;
  */
 public class RegeneratorImpl extends AbstractJob {
     public RegeneratorImpl() {
-        System.out.println("BRAVO");
     }
 
     @Override

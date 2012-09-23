@@ -3,6 +3,8 @@ package org.kohsuke.confluence.scache;
 import org.quartz.JobDetail;
 
 /**
+ * See https://developer.atlassian.com/display/CONFDEV/Workaround+pattern+for+autowiring+jobs
+ *
  * @author Kohsuke Kawaguchi
  */
 public class RegeneratorJobDetail extends JobDetail {

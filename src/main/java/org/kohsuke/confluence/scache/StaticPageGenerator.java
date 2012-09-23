@@ -18,7 +18,8 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -142,7 +143,7 @@ public class StaticPageGenerator {
     public void regenerateAll() {
         if (!configurationManager.isConfigured())   return;
 
-        LOGGER.info("Rescheduling the generation of everything");
+        LOGGER.warn("Rescheduling the generation of everything");
         for (Space space : spaceManager.getAllSpaces()) {
             if (space.isPersonal()) continue;   // don't care about personal space
 
@@ -221,7 +222,7 @@ public class StaticPageGenerator {
         return t;
     }
 
-    private static final Logger LOGGER = Logger.getLogger(StaticPageGenerator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StaticPageGenerator.class);
 
     private static final ThreadFactory DAEMON_THREAD_FACTORY = new ThreadFactory() {
         public Thread newThread(Runnable r) {
