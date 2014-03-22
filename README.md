@@ -108,7 +108,9 @@ in Confluence fully hits the database before the crawler reads the page.
 
 The cache gets deleted immediately when a page is modified.
 
-The crawler uses a dedicated user account to crawl the page, so the captured HTML will contain
+The crawler uses a dedicated user account to crawl the page, so any pages visible to this user
+will have its cache generated. If you have sensitive pages in your Wiki, be sure to select the
+user with the right permissions. Also, the captured HTML will contain
 some trace of this user name. The crawler post-process HTML to remove these traces. In particular,
 the user name that appears at the top-right corner of the page gets clobbered.
 
