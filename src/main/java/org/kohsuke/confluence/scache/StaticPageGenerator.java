@@ -136,6 +136,22 @@ public class StaticPageGenerator {
     }
 
     private String transformHtml(String s) {
+        // JENKINS SPECIFIC FROM HERE
+        String patronBanner = "<div id=\"page-metadata-end\" class=\"assistive\"></div>";
+        int idx = s.indexOf(patronBanner);
+        if (idx>=0) {
+            int pos = idx + patronBanner.length();
+            s = s.substring(0,pos)+
+                    "<script>\n" +
+                    "if (Math.random()*7<1) {\n" +
+                    "  document.write(\"<div align='center'><iframe src='https://jenkins-ci.org/patron/message.html' width=568 height=75 style='border: 1px solid #ccc; overflow:hidden'></iframe></div>\");\n" +
+                    "}\n" +
+                    "</script>"+s.substring(pos);
+        } else {
+            throw new IllegalStateException("Can't find the patron message insertion point");
+        }
+        // JENKINS SPECIFIC TILL HERE
+
         String userMenuLink = "id=\"user-menu-link\"";
         return s.replace(userMenuLink,userMenuLink+" style='display:none'");
     }
