@@ -144,7 +144,7 @@ public class StaticPageGenerator {
             s = s.substring(0,pos)+
                     "<script>\n" +
                     "if (Math.random()*7<1) {\n" +
-                    "  document.write(\"<div align='center'><iframe src='https://jenkins-ci.org/patron/message.html' width=568 height=75 style='border: 1px solid #ccc; overflow:hidden'></iframe></div>\");\n" +
+                    "  document.write(\"<div align='center'><div style='width: 568px; color: #888; text-align:right; font-size:10px'>Message from a Patron of Jenkins</div><iframe src='https://jenkins-ci.org/patron/message.html' width=568 height=75 style='border: 1px solid #ccc; overflow:hidden'></iframe></div>\");\n" +
                     "}\n" +
                     "</script>"+s.substring(pos);
         } else {
