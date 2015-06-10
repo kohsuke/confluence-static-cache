@@ -3,10 +3,13 @@ package org.kohsuke.confluence.scache;
 import com.atlassian.confluence.core.ContentEntityObject;
 import com.atlassian.confluence.event.events.content.comment.CommentEvent;
 import com.atlassian.confluence.event.events.content.page.PageEvent;
+import com.atlassian.confluence.event.events.content.page.PageMoveEvent;
 import com.atlassian.confluence.event.events.content.page.PageRemoveEvent;
+import com.atlassian.confluence.event.events.content.page.PageUpdateEvent;
 import com.atlassian.confluence.event.events.label.LabelEvent;
 import com.atlassian.confluence.labels.Label;
 import com.atlassian.confluence.labels.Labelable;
+import com.atlassian.confluence.pages.AbstractPage;
 import com.atlassian.confluence.pages.Page;
 import com.atlassian.confluence.pages.PageManager;
 import com.atlassian.confluence.spaces.Space;
@@ -52,7 +55,7 @@ public class StaticPageGenerator {
         private final String key;
         private boolean nocache;
 
-        public Task(Page page) {
+        public Task(AbstractPage page) {
             key = page.getSpaceKey()+'/'+page.getTitle();
             url = configurationManager.getRetrievalUrl()+page.getUrlPath();
 
@@ -192,9 +195,19 @@ public class StaticPageGenerator {
         LOGGER.info("Handling " + event);
         if (event instanceof PageRemoveEvent) {
             new Task(((PageEvent) event).getPage()).delete();
+            return;
         }
         if (event instanceof PageEvent) {
-            submit(((PageEvent) event).getPage(),true);
+            Page pg = ((PageEvent) event).getPage();
+            submit(pg,true);
+
+            if (event instanceof PageUpdateEvent) {
+                AbstractPage orig = ((PageUpdateEvent) event).getOriginalPage();
+                if (!pg.getTitle().equals(orig.getTitle())) {
+                    // if the page is renamed, delete the old one
+                    new Task(orig).delete();
+                }
+            }
         }
         if (event instanceof LabelEvent) {
             Labelable labelled = ((LabelEvent) event).getLabelled();
